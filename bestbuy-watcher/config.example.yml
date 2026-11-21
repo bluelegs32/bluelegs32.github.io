@@ -1,0 +1,50 @@
+# bbwatch - Best Buy open-box watcher
+# Copy to config.yml and edit. Anything ${LIKE_THIS} is read from the
+# environment, so secrets can stay out of the file (fly secrets / Unraid vars).
+
+# Free key from https://developer.bestbuy.com (request Open Box API access).
+api_key: ${BESTBUY_API_KEY}
+
+# Used only when check_store_availability is true.
+zip_code: ${ZIP_CODE:-60601}
+store_radius_miles: 25
+check_store_availability: false
+
+# The undocumented bestbuy.com endpoint. Off by default: it is not a
+# supported API and may break or be blocked. The official API above is enough.
+allow_unofficial_source: false
+
+# Loop mode only. 3600 = hourly. Do not go below 300 - be a good citizen.
+interval_seconds: 3600
+
+# Where the "already told you about this" history lives. Must be on a volume.
+state_path: /data/state.json
+
+# Re-ping about a listing that is still up after this many hours. 0 = never.
+repeat_after_hours: 24
+
+watches:
+  - name: 97-inch LG G5
+    skus: ["6618354"]        # <- confirm the real SKU on the product page URL
+    max_price: 6000
+    min_condition: excellent # fair | satisfactory/good | excellent | certified
+    min_discount_pct: 50
+
+  - name: Any big LG OLED under 3k
+    search: LG OLED evo 83   # keyword search, resolved to SKUs each pass
+    max_price: 3000
+    min_condition: excellent
+
+notify:
+  ntfy:
+    enabled: true
+    server: https://ntfy.sh          # or http://192.168.1.x:8080 for self-hosted
+    topic: ${NTFY_TOPIC}             # pick something unguessable if using ntfy.sh
+    token: ${NTFY_TOKEN}             # optional, for protected topics
+    priority: high
+
+  pushover:
+    enabled: false
+    token: ${PUSHOVER_TOKEN}
+    user: ${PUSHOVER_USER}
+    priority: 1                      # 2 = emergency, repeats until acknowledged

@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!-- Drop in /boot/config/plugins/dockerMan/templates-user/my-bbwatch.xml
+     then Docker tab > Add Container > select "bbwatch" from the template list. -->
+<Container version="2">
+  <Name>bbwatch</Name>
+  <Repository>bbwatch:latest</Repository>
+  <Registry/>
+  <Network>bridge</Network>
+  <Privileged>false</Privileged>
+  <Support/>
+  <Project/>
+  <Overview>
+    Watches Best Buy for open-box listings of the products you choose and pushes
+    a notification (ntfy or Pushover) the moment a matching unit appears.
+    Edit /mnt/user/appdata/bbwatch/config/config.yml after first start.
+  </Overview>
+  <Category>Tools: HomeAutomation:</Category>
+  <WebUI/>
+  <Icon>https://raw.githubusercontent.com/bluelegs32/bluelegs32.github.io/main/bestbuy-watcher/icon.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+
+  <Config Name="Config dir" Target="/config" Default="/mnt/user/appdata/bbwatch/config"
+          Mode="rw" Description="Holds config.yml" Type="Path" Display="always"
+          Required="true" Mask="false">/mnt/user/appdata/bbwatch/config</Config>
+
+  <Config Name="Data dir" Target="/data" Default="/mnt/user/appdata/bbwatch/data"
+          Mode="rw" Description="Holds state.json (alert history)" Type="Path"
+          Display="always" Required="true" Mask="false">/mnt/user/appdata/bbwatch/data</Config>
+
+  <Config Name="Best Buy API key" Target="BESTBUY_API_KEY" Default=""
+          Description="Free key from developer.bestbuy.com" Type="Variable"
+          Display="always" Required="true" Mask="true"/>
+
+  <Config Name="ntfy topic" Target="NTFY_TOPIC" Default=""
+          Description="Topic to publish alerts to. Make it unguessable on ntfy.sh."
+          Type="Variable" Display="always" Required="false" Mask="false"/>
+
+  <Config Name="ntfy server" Target="NTFY_SERVER" Default="https://ntfy.sh"
+          Description="Use http://&lt;unraid-ip&gt;:8080 for a self-hosted ntfy container"
+          Type="Variable" Display="always" Required="false" Mask="false">https://ntfy.sh</Config>
+
+  <Config Name="ntfy token" Target="NTFY_TOKEN" Default=""
+          Description="Optional, for access-controlled topics" Type="Variable"
+          Display="advanced" Required="false" Mask="true"/>
+
+  <Config Name="Pushover token" Target="PUSHOVER_TOKEN" Default=""
+          Description="Pushover application token (optional)" Type="Variable"
+          Display="advanced" Required="false" Mask="true"/>
+
+  <Config Name="Pushover user key" Target="PUSHOVER_USER" Default=""
+          Description="Pushover user key (optional)" Type="Variable"
+          Display="advanced" Required="false" Mask="true"/>
+
+  <Config Name="Check interval (seconds)" Target="INTERVAL_SECONDS" Default="3600"
+          Description="How often to poll. 3600 = hourly." Type="Variable"
+          Display="always" Required="false" Mask="false">3600</Config>
+
+  <Config Name="Timezone" Target="TZ" Default="America/Chicago" Description="Timezone"
+          Type="Variable" Display="advanced" Required="false" Mask="false">America/Chicago</Config>
+
+  <Config Name="Run mode" Target="RUN_MODE" Default="loop"
+          Description="loop = run forever on the interval; once = single pass then exit"
+          Type="Variable" Display="advanced" Required="false" Mask="false">loop</Config>
+</Container>

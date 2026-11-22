@@ -1,0 +1,26 @@
+# Fly.io deployment. Two ways to run it - pick one (README has the commands):
+#   A. always-on tiny machine, internal loop  (this file as written)
+#   B. scheduled machine, one pass per run    (RUN_MODE=once + fly machine run --schedule)
+
+app = "bbwatch"
+primary_region = "ord"   # Chicago
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  RUN_MODE = "loop"
+  INTERVAL_SECONDS = "3600"
+  CONFIG_PATH = "/data/config.yml"
+  STATE_PATH = "/data/state.json"
+  TZ = "America/Chicago"
+
+[mounts]
+  source = "bbwatch_data"
+  destination = "/data"
+
+# No HTTP service: this is a worker. Keep exactly one machine, always running.
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+  cpus = 1

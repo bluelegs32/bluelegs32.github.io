@@ -1,0 +1,20 @@
+# Works as-is on Unraid (Docker Compose Manager plugin) or any Docker host.
+services:
+  bbwatch:
+    build: .
+    image: bbwatch:latest
+    container_name: bbwatch
+    restart: unless-stopped
+    environment:
+      RUN_MODE: loop
+      INTERVAL_SECONDS: "3600"
+      TZ: America/Chicago
+      BESTBUY_API_KEY: ${BESTBUY_API_KEY}
+      NTFY_TOPIC: ${NTFY_TOPIC}
+      NTFY_SERVER: ${NTFY_SERVER:-https://ntfy.sh}
+      NTFY_TOKEN: ${NTFY_TOKEN:-}
+      # PUSHOVER_TOKEN: ${PUSHOVER_TOKEN}
+      # PUSHOVER_USER: ${PUSHOVER_USER}
+    volumes:
+      - /mnt/user/appdata/bbwatch/config:/config
+      - /mnt/user/appdata/bbwatch/data:/data

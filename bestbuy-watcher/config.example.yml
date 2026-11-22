@@ -3,6 +3,8 @@
 # environment, so secrets can stay out of the file (fly secrets / Unraid vars).
 
 # Free key from https://developer.bestbuy.com (request Open Box API access).
+# Leave blank to run keyless - then you MUST set allow_unofficial_source below,
+# and keyword `search` watches stop working (SKU lists still do).
 api_key: ${BESTBUY_API_KEY}
 
 # Used only when check_store_availability is true.
@@ -10,8 +12,9 @@ zip_code: ${ZIP_CODE:-60601}
 store_radius_miles: 25
 check_store_availability: false
 
-# The undocumented bestbuy.com endpoint. Off by default: it is not a
-# supported API and may break or be blocked. The official API above is enough.
+# The undocumented bestbuy.com endpoint. Required if you have no API key.
+# It is not a supported API: the shape can change and requests may be
+# refused outright. Verify with `--probe <sku>` before trusting it.
 allow_unofficial_source: false
 
 # Loop mode only. 3600 = hourly. Do not go below 300 - be a good citizen.

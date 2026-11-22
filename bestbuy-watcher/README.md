@@ -24,12 +24,44 @@ Condition grades rank: `fair` < `satisfactory`/`good` < `excellent` < `certified
 
 ---
 
-## 1. Get a Best Buy API key
+## 1. Get a Best Buy API key (or skip it — see below)
 
 Free, takes a few minutes: <https://developer.bestbuy.com>. Sign up, create an
 app, and request access to the **Open Box API** (it is a beta endpoint, requested
 separately from the main product API). Standard limits are 5 requests/second and
 50,000/day — hourly polling of a handful of SKUs uses a rounding error of that.
+
+### Running without an API key
+
+You can. Leave `api_key` blank and set `allow_unofficial_source: true`, and the
+watcher falls back to the JSON endpoint that bestbuy.com's own product page calls.
+No signup, no key, no waiting on beta approval.
+
+What you give up:
+
+- **Keyword `search` watches stop working.** Search resolution goes through the
+  official products API. SKU lists are unaffected, and SKUs are the reliable path
+  anyway — put the numbers in `skus` and you lose nothing that matters.
+- **No store availability**, so `check_store_availability` does nothing.
+- **It can stop working without warning.** It is an internal endpoint, not a
+  contract. The response shape can change, and Best Buy may simply refuse
+  automated requests to it — if that happens, that is them declining, and the
+  answer is the free key rather than something cleverer.
+
+Before you rely on a keyless setup, confirm it actually returns data **on the
+machine that will run it** — my sandbox could not reach Best Buy, so the mapping
+for this endpoint is written defensively but has never been checked against a
+live response:
+
+```bash
+docker exec bbwatch python -m bbwatch.cli --probe 6618354        # Unraid
+fly ssh console -C "python -m bbwatch.cli --probe 6618354"       # Fly
+```
+
+That prints both the raw response and what the parser made of it. If `parsed` is
+empty but `raw` clearly contains open-box prices, the field mapping needs a nudge
+in `_parse_offers` — send me the raw block and I'll fix it. If the request is
+refused outright, get the key.
 
 ## 2. Find your SKUs
 
@@ -167,7 +199,7 @@ See `config.example.yml` — every key is commented. Highlights:
 | `interval_seconds` | 3600 is plenty. Below 300 is refused. |
 | `repeat_after_hours` | Re-ping about a still-live listing. `0` disables reminders. |
 | `check_store_availability` | Adds nearby stores to the alert. Needs `zip_code`. |
-| `allow_unofficial_source` | Off by default — see the caveat below. |
+| `allow_unofficial_source` | Required for keyless operation. See the caveat below. |
 
 Any `${VAR}` in the file is filled from the environment, and these env vars
 override the file outright: `BESTBUY_API_KEY`, `NTFY_TOPIC`, `NTFY_SERVER`,
@@ -187,8 +219,9 @@ override the file outright: `BESTBUY_API_KEY`, `NTFY_TOPIC`, `NTFY_SERVER`,
   watcher can see that. What this buys you is being first to the listing.
 - `allow_unofficial_source` reads the JSON endpoint bestbuy.com's own product page
   calls. It is undocumented, unsupported, and may be blocked or changed without
-  notice. The official API covers this use case; leave it off unless you have a
-  reason.
+  notice — and unlike the official path, its response mapping has never been
+  checked against a live response. Run `--probe <sku>` before trusting it. It is
+  the right choice only if you genuinely cannot get a key.
 - Polling faster than hourly will not find much that hourly misses and does put
   you closer to rate limits. The floor is 300 seconds and it is there on purpose.
 
@@ -200,6 +233,7 @@ override the file outright: `BESTBUY_API_KEY`, `NTFY_TOPIC`, `NTFY_SERVER`,
 pip install -r requirements.txt pytest
 PYTHONPATH=src python -m pytest tests -q
 PYTHONPATH=src python -m bbwatch.cli -c config.yml --mode once --dry-run -v
+PYTHONPATH=src python -m bbwatch.cli -c config.yml --probe 6618354
 ```
 
 Tests cover config validation, condition ranking, offer parsing against sample API

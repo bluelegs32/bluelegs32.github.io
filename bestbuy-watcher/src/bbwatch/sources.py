@@ -274,3 +274,39 @@ def fetch_open_box_unofficial(client: BestBuyClient, skus: Sequence[str]) -> lis
             }
             offers.extend(_parse_offers(result, "bestbuy-web"))
     return offers
+
+
+def probe(client: BestBuyClient, sku: str) -> dict[str, Any]:
+    """Dump what each source actually returns for one SKU.
+
+    The unofficial endpoint is undocumented and its shape is not guaranteed,
+    so when a keyless setup finds nothing this shows whether the request was
+    refused, returned nothing, or returned data the parser did not understand.
+    """
+    report: dict[str, Any] = {"sku": sku}
+
+    if client.api_key:
+        url = f"{API_ROOT}{OPEN_BOX_PATH}(sku in({sku}))"
+        try:
+            payload = client.get_json(url, {"apiKey": client.api_key, "format": "json"})
+        except Exception as exc:  # noqa: BLE001 - this is a diagnostic
+            report["official"] = {"ok": False, "error": str(exc)}
+        else:
+            parsed = [
+                o.to_dict()
+                for r in payload.get("results") or []
+                for o in _parse_offers(r, "bestbuy-api")
+            ]
+            report["official"] = {"ok": True, "parsed": parsed, "raw": payload}
+    else:
+        report["official"] = {"ok": False, "error": "no API key configured"}
+
+    try:
+        payload = client.get_json(PRICE_BLOCKS_URL, {"skus": sku})
+    except Exception as exc:  # noqa: BLE001 - this is a diagnostic
+        report["unofficial"] = {"ok": False, "error": str(exc)}
+    else:
+        parsed = [o.to_dict() for o in fetch_open_box_unofficial(client, [sku])]
+        report["unofficial"] = {"ok": True, "parsed": parsed, "raw": payload}
+
+    return report

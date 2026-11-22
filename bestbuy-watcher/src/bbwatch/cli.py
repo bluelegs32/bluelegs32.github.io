@@ -51,6 +51,9 @@ def build_parser() -> argparse.ArgumentParser:
                         help="send a test notification and exit")
     parser.add_argument("--dry-run", action="store_true",
                         help="check and print matches without sending or saving state")
+    parser.add_argument("--probe", metavar="SKU",
+                        help="dump raw + parsed output from each source for one SKU, "
+                             "then exit (use this to debug a keyless setup)")
     parser.add_argument("--json", action="store_true", help="print results as JSON")
     parser.add_argument("-v", "--verbose", action="store_true")
     return parser
@@ -66,6 +69,11 @@ def main(argv: list[str] | None = None) -> int:
     except ConfigError as exc:
         log.error("config error: %s", exc)
         return 2
+
+    if args.probe:
+        from .sources import probe
+        print(json.dumps(probe(BestBuyClient(config.api_key), args.probe), indent=2)[:20000])
+        return 0
 
     if not config.any_notifier_enabled:
         log.error("no notification channel is enabled - enable ntfy or pushover")

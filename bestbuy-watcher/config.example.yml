@@ -33,6 +33,14 @@ watches:
     min_condition: excellent # fair | satisfactory/good | excellent | certified
     min_discount_pct: 50
 
+  - name: 77-inch LG C5
+    # 6621825 = LG OLED77C5PUA, the standard Best Buy listing (verified Nov 2025).
+    # The bundle listings are separate SKUs and usually not worth watching:
+    #   11980502 warranty+mount, 12709320 soundbar+sub, 10885845 w/ HDMI cable
+    skus: ["6621825"]
+    max_price: 1800
+    min_condition: excellent
+
   - name: Any big LG OLED under 3k
     search: LG OLED evo 83   # keyword search, resolved to SKUs each pass
     max_price: 3000
